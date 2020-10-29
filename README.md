@@ -1,34 +1,27 @@
-# zip-webpack-plugin
+# zip-file-webpack-plugin
 
-Webpack plugin to zip up emitted files.
-
-Compresses all assets into a zip file.
+Webpack plugin to zip up emitted files. Compresses all assets into a zip file.
 
 ## Installation
 
-For Webpack 4:
-
-`npm install --save-dev zip-webpack-plugin`
-
-For Webpack 3:
-
-`npm install --save-dev zip-webpack-plugin@2.0.0`
+`npm install --save-dev zip-file-webpack-plugin`
 
 ## Usage
 
 **webpack.config.js**
 
 ```js
-var ZipPlugin = require('zip-webpack-plugin');
+const ZipFilePlugin = require('zip-file-webpack-plugin');
 
 module.exports = {
   // ...
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
   },
+  // ...
   plugins: [
-    new ZipPlugin({
+    new ZipFilePlugin({
       // OPTIONAL: defaults to the Webpack output path (above)
       // can be relative (to Webpack output path) or absolute
       path: 'zip',
@@ -47,10 +40,15 @@ module.exports = {
 
       // OPTIONAL: defaults to the identity function
       // a function mapping asset paths to new paths
-      pathMapper: function(assetPath) {
+      pathMapper: (assetPath) => {
         // put all pngs in an `images` subdir
-        if (assetPath.endsWith('.png'))
-          return path.join(path.dirname(assetPath), 'images', path.basename(assetPath));
+        if (assetPath.endsWith('.png')) {
+          return path.join(
+            path.dirname(assetPath),
+            'images',
+            path.basename(assetPath),
+          );
+        }
         return assetPath;
       },
 
@@ -77,7 +75,17 @@ module.exports = {
       zipOptions: {
         forceZip64Format: false,
       },
-    })
-  ]
+    }),
+  ],
+  // ...
 };
 ```
+
+## Notes
+
+This repository is an independent fork of [erikdesjardins/zip-webpack-plugin](https://github.com/erikdesjardins/zip-webpack-plugin).
+
+In addition to what [zip-webpack-plugin](https://www.npmjs.com/package/zip-webpack-plugin) provides, this package also:
+
+- ships along TypeScript declarations. (No need to `npm install --save-dev @types/zip-webpack-plugin` anymore.)
+- supports Webpack 5.
