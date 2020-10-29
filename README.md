@@ -87,5 +87,5 @@ This repository is an independent fork of [erikdesjardins/zip-webpack-plugin](ht
 
 In addition to what [zip-webpack-plugin](https://www.npmjs.com/package/zip-webpack-plugin) provides, this package also:
 
-- ships along TypeScript declarations. (No need to `npm install --save-dev @types/zip-webpack-plugin` anymore.)
+- ships along TypeScript declarations. (No more `npm install --save-dev @types/zip-webpack-plugin`.)
 - supports Webpack 5.

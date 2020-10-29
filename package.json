@@ -1,6 +1,6 @@
 {
   "name": "zip-file-webpack-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Webpack plugin to zip up emitted files. Compresses all assets into a zip file.",
   "main": "index.js",
   "scripts": {
