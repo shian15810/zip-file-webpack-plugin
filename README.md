@@ -1,6 +1,6 @@
 # zip-file-webpack-plugin
 
-Webpack plugin to zip up emitted files. Compresses all assets into a zip file.
+Webpack plugin to zip emitted files. Compresses all assets into a zip file.
 
 ## Installation
 
