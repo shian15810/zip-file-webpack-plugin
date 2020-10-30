@@ -1,9 +1,9 @@
 'use strict';
 
-var path = require('path');
-var ModuleFilenameHelpers = require('webpack/lib/ModuleFilenameHelpers.js');
-var { RawSource } = require('webpack-sources');
-var yazl = require('yazl');
+import path from 'path';
+import ModuleFilenameHelpers from 'webpack/lib/ModuleFilenameHelpers.js';
+import RawSource from 'webpack-sources/lib/RawSource.js';
+import yazl from 'yazl';
 
 function ZipFilePlugin(options) {
   this.options = options || {};
@@ -99,4 +99,4 @@ ZipFilePlugin.prototype.apply = function (compiler) {
   });
 };
 
-module.exports = ZipFilePlugin;
+export default ZipFilePlugin;

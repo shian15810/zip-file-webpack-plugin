@@ -1,4 +1,4 @@
-require('spawn-loader?name=[name].js!./spawned.js');
-require('file-loader?name=subdir/bye.jpg!./hi.jpg');
+import 'file-loader?name=subdir/bye.jpg!./hi.jpg';
+import 'spawn-loader?name=[name].js!./spawned.js';
 
-var a = 'b';
+export const abc = 'xyz';

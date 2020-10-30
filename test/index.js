@@ -1,13 +1,15 @@
 import { createWriteStream, readFileSync } from 'fs';
 import { basename, dirname, join, resolve } from 'path';
-
+import { fileURLToPath } from 'url';
 import test from 'ava';
-import webpack from 'webpack';
-import rimraf from 'rimraf';
 import mkdirp from 'mkdirp';
+import rimraf from 'rimraf';
+import webpack from 'webpack';
 import yauzl from 'yauzl';
+import ZipFilePlugin from '../index.js';
 
-import ZipFilePlugin from '../index';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function randomPath() {
   return join(__dirname, 'dist', String(Math.random()).slice(2));
@@ -48,11 +50,13 @@ test('default', async (t) => {
   await runWithOptions({ path: out });
 
   const byeJpg = readFileSync(join(out, 'subdir', 'bye.jpg'));
+  const mainJs = readFileSync(join(out, 'main.js'), 'utf8');
   const spawnedJs = readFileSync(join(out, 'spawned.js'), 'utf8');
   const bundleJsZip = readFileSync(getZipPath({ outputPath: out }));
 
   t.truthy(byeJpg);
-  t.regex(spawnedJs, /var foo = 'bar';/);
+  t.regex(mainJs, /const abc = 'xyz';/);
+  t.regex(spawnedJs, /const foo = 'bar';/);
   t.truthy(bundleJsZip);
 });
 
@@ -66,8 +70,8 @@ test('basic', async (t) => {
   const bundleJsZip = readFileSync(getZipPath({ outputPath: out }));
 
   t.truthy(byeJpg);
-  t.regex(bundleJs, /var a = 'b';/);
-  t.regex(spawnedJs, /var foo = 'bar';/);
+  t.regex(bundleJs, /const abc = 'xyz';/);
+  t.regex(spawnedJs, /const foo = 'bar';/);
   t.truthy(bundleJsZip);
 });
 
@@ -237,7 +241,7 @@ test('fileOptions', async (t) => {
     },
   );
 
-  t.is(readFileSync(getZipPath({ outputPath: out })).length, 65877);
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 128965);
 });
 
 test('zipOptions', async (t) => {
@@ -251,7 +255,7 @@ test('zipOptions', async (t) => {
     },
   );
 
-  t.is(readFileSync(getZipPath({ outputPath: out })).length, 58482);
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 106178);
 });
 
 test('fileOptions and zipOptions', async (t) => {
@@ -270,7 +274,7 @@ test('fileOptions and zipOptions', async (t) => {
     },
   );
 
-  t.is(readFileSync(getZipPath({ outputPath: out })).length, 58566);
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 106262);
 });
 
 test('pathPrefix', async (t) => {

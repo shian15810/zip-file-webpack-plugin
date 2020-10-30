@@ -92,4 +92,4 @@ declare class ZipFilePlugin extends Plugin {
   apply(compiler: Compiler): void;
 }
 
-export = ZipFilePlugin;
+export default ZipFilePlugin;

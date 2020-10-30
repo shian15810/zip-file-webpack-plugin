@@ -1,11 +1,12 @@
 {
+  "type": "module",
   "name": "zip-file-webpack-plugin",
   "version": "1.0.0",
   "description": "Webpack plugin to zip emitted files. Compresses all assets into a zip file.",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "test": "ava test/test.js"
+    "test": "ava test/index.js"
   },
   "repository": {
     "type": "git",
@@ -30,7 +31,7 @@
     "yazl": "^2.5.1"
   },
   "devDependencies": {
-    "ava": "^2.4.0",
+    "ava": "^3.13.0",
     "file-loader": "^6.2.0",
     "mkdirp": "^1.0.4",
     "rimraf": "^3.0.2",

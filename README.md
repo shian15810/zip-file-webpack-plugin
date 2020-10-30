@@ -11,9 +11,12 @@ Webpack plugin to zip emitted files. Compresses all assets into a zip file.
 **webpack.config.js**
 
 ```js
-const ZipFilePlugin = require('zip-file-webpack-plugin');
+import ZipFilePlugin from 'zip-file-webpack-plugin';
 
-module.exports = {
+/**
+ * @type {import('webpack').Configuration}
+ */
+const config = {
   // ...
   output: {
     path: path.join(__dirname, 'dist'),
@@ -77,6 +80,8 @@ module.exports = {
   ],
   // ...
 };
+
+export default config;
 ```
 
 ## Notes
