@@ -26,19 +26,24 @@
   },
   "homepage": "https://github.com/shian15810/zip-file-webpack-plugin#readme",
   "dependencies": {
-    "webpack-sources": "^1.1.0",
-    "yazl": "^2.4.3"
+    "webpack-sources": "^2.2.0",
+    "yazl": "^2.5.1"
   },
   "devDependencies": {
     "ava": "^2.4.0",
-    "file-loader": "^1.1.11",
-    "mkdirp": "^0.5.1",
-    "rimraf": "^3.0.0",
-    "spawn-loader": "^5.0.0",
-    "webpack": "^4.41.2",
+    "file-loader": "^6.2.0",
+    "mkdirp": "^1.0.4",
+    "rimraf": "^3.0.2",
+    "spawn-loader": "^7.0.0",
+    "webpack": "^4.44.2",
     "yauzl": "^2.10.0"
   },
   "peerDependencies": {
     "webpack": "*"
+  },
+  "peerDependenciesMeta": {
+    "webpack": {
+      "optional": true
+    }
   }
 }

@@ -237,10 +237,7 @@ test('fileOptions', async (t) => {
     },
   );
 
-  t.is(
-    readFileSync(getZipPath({ outputPath: out })).length,
-    process.platform === 'win32' ? 63791 : 65758,
-  );
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 65877);
 });
 
 test('zipOptions', async (t) => {
@@ -254,10 +251,7 @@ test('zipOptions', async (t) => {
     },
   );
 
-  t.is(
-    readFileSync(getZipPath({ outputPath: out })).length,
-    process.platform === 'win32' ? 57857 : 58424,
-  );
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 58482);
 });
 
 test('fileOptions and zipOptions', async (t) => {
@@ -276,10 +270,7 @@ test('fileOptions and zipOptions', async (t) => {
     },
   );
 
-  t.is(
-    readFileSync(getZipPath({ outputPath: out })).length,
-    process.platform === 'win32' ? 57941 : 58508,
-  );
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 58566);
 });
 
 test('pathPrefix', async (t) => {
