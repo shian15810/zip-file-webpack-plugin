@@ -9,7 +9,7 @@ declare namespace ZipFilePlugin {
     path?: string;
     /**
      * Output file name.
-     * Defaults to the Webpack output filename or basename of the path.
+     * Defaults to the basename of `path` option.
      */
     filename?: string;
     /**

@@ -1,5 +1,5 @@
 import { createWriteStream, readFileSync } from 'fs';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, join, resolve } from 'path';
 
 import test from 'ava';
 import webpack from 'webpack';
@@ -34,6 +34,28 @@ function runWithOptions({ path, filename }, options) {
   });
 }
 
+const getZipPath = ({ outputPath, path, filename, extension }) =>
+  resolve(
+    outputPath,
+    path ?? '',
+    basename(filename ?? path ?? outputPath, '.zip') +
+      '.' +
+      (extension ?? 'zip'),
+  );
+
+test('default', async (t) => {
+  const out = randomPath();
+  await runWithOptions({ path: out });
+
+  const byeJpg = readFileSync(join(out, 'subdir', 'bye.jpg'));
+  const spawnedJs = readFileSync(join(out, 'spawned.js'), 'utf8');
+  const bundleJsZip = readFileSync(getZipPath({ outputPath: out }));
+
+  t.truthy(byeJpg);
+  t.regex(spawnedJs, /var foo = 'bar';/);
+  t.truthy(bundleJsZip);
+});
+
 test('basic', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out, filename: 'bundle.js' });
@@ -41,7 +63,7 @@ test('basic', async (t) => {
   const byeJpg = readFileSync(join(out, 'subdir', 'bye.jpg'));
   const bundleJs = readFileSync(join(out, 'bundle.js'), 'utf8');
   const spawnedJs = readFileSync(join(out, 'spawned.js'), 'utf8');
-  const bundleJsZip = readFileSync(join(out, 'bundle.js.zip'));
+  const bundleJsZip = readFileSync(getZipPath({ outputPath: out }));
 
   t.truthy(byeJpg);
   t.regex(bundleJs, /var a = 'b';/);
@@ -81,7 +103,7 @@ test('roundtrip', async (t) => {
 
   await runWithOptions({ path: outSrc, filename: 'bundle.js' });
 
-  await unzip(join(outSrc, 'bundle.js.zip'), outDst);
+  await unzip(getZipPath({ outputPath: outSrc }), outDst);
 
   t.is(
     Buffer.compare(
@@ -113,7 +135,7 @@ async function roundtrip(options) {
 
   await runWithOptions({ path: outSrc, filename: 'bundle.js' }, options);
 
-  await unzip(join(outSrc, 'bundle.js.zip'), outDst);
+  await unzip(getZipPath({ outputPath: outSrc }), outDst);
 
   return outDst;
 }
@@ -216,7 +238,7 @@ test('fileOptions', async (t) => {
   );
 
   t.is(
-    readFileSync(join(out, 'bundle.js.zip')).length,
+    readFileSync(getZipPath({ outputPath: out })).length,
     process.platform === 'win32' ? 63791 : 65758,
   );
 });
@@ -233,7 +255,7 @@ test('zipOptions', async (t) => {
   );
 
   t.is(
-    readFileSync(join(out, 'bundle.js.zip')).length,
+    readFileSync(getZipPath({ outputPath: out })).length,
     process.platform === 'win32' ? 57857 : 58424,
   );
 });
@@ -255,7 +277,7 @@ test('fileOptions and zipOptions', async (t) => {
   );
 
   t.is(
-    readFileSync(join(out, 'bundle.js.zip')).length,
+    readFileSync(getZipPath({ outputPath: out })).length,
     process.platform === 'win32' ? 57941 : 58508,
   );
 });
@@ -306,25 +328,31 @@ test('pathMapper - js', async (t) => {
 test('naming - default options, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out });
-  t.truthy(readFileSync(join(out, '[name].js.zip')), '.zip exists');
+  t.truthy(readFileSync(getZipPath({ outputPath: out })), '.zip exists');
 });
 
 test('naming - default options, with webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out, filename: 'bundle.js' });
-  t.truthy(readFileSync(join(out, 'bundle.js.zip')), '.zip exists');
+  t.truthy(readFileSync(getZipPath({ outputPath: out })), '.zip exists');
 });
 
 test('naming - specified filename with .zip, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { filename: 'my_app.zip' });
-  t.truthy(readFileSync(join(out, 'my_app.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, filename: 'my_app.zip' })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified filename without .zip, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { filename: 'my_app' });
-  t.truthy(readFileSync(join(out, 'my_app.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, filename: 'my_app' })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified filename with .zip, with webpack filename', async (t) => {
@@ -333,13 +361,21 @@ test('naming - specified filename with .zip, with webpack filename', async (t) =
     { path: out, filename: 'bundle.js' },
     { filename: 'my_app.zip' },
   );
-  t.truthy(readFileSync(join(out, 'my_app.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, filename: 'my_app.zip' })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified filename and extension, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { filename: 'file', extension: 'ext' });
-  t.truthy(readFileSync(join(out, 'file.ext')), '.ext exists');
+  t.truthy(
+    readFileSync(
+      getZipPath({ outputPath: out, filename: 'file', extension: 'ext' }),
+    ),
+    '.ext exists',
+  );
 });
 
 test('naming - specified extension, webpack filename', async (t) => {
@@ -348,55 +384,86 @@ test('naming - specified extension, webpack filename', async (t) => {
     { path: out, filename: 'bundle.js' },
     { extension: 'ext' },
   );
-  t.truthy(readFileSync(join(out, 'bundle.js.ext')), '.ext exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, extension: 'ext' })),
+    '.ext exists',
+  );
 });
 
 test('naming - specified extension, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { extension: 'ext' });
-  t.truthy(readFileSync(join(out, '[name].js.ext')), '.ext exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, extension: 'ext' })),
+    '.ext exists',
+  );
 });
 
 test('naming - specified relative path and extension, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { path: 'zip', extension: 'ext' });
-  t.truthy(readFileSync(join(out, 'zip', '[name].js.ext')), '.ext exists');
+  t.truthy(
+    readFileSync(
+      getZipPath({ outputPath: out, path: 'zip', extension: 'ext' }),
+    ),
+    '.ext exists',
+  );
 });
 
 test('naming - specified relative path with slash and extension, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { path: './zip', extension: 'ext' });
-  t.truthy(readFileSync(join(out, 'zip', '[name].js.ext')), '.ext exists');
+  t.truthy(
+    readFileSync(
+      getZipPath({ outputPath: out, path: './zip', extension: 'ext' }),
+    ),
+    '.ext exists',
+  );
 });
 
 test('naming - specified relative path, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { path: 'zip' });
-  t.truthy(readFileSync(join(out, 'zip', '[name].js.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, path: 'zip' })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified relative path with slash, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { path: './zip' });
-  t.truthy(readFileSync(join(out, 'zip', '[name].js.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, path: './zip' })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified relative path with parent, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: join(out, 'bin') }, { path: '../zip' });
-  t.truthy(readFileSync(join(out, 'zip', '[name].js.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: join(out, 'bin'), path: '../zip' })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified absolute path, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { path: join(out, 'zip') });
-  t.truthy(readFileSync(join(out, 'zip', '[name].js.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, path: join(out, 'zip') })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified relative path, with webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out, filename: 'bundle.js' }, { path: 'zip' });
-  t.truthy(readFileSync(join(out, 'zip', 'bundle.js.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, path: 'zip' })),
+    '.zip exists',
+  );
 });
 
 test('naming - specified absolute path, with webpack filename', async (t) => {
@@ -405,13 +472,21 @@ test('naming - specified absolute path, with webpack filename', async (t) => {
     { path: out, filename: 'bundle.js' },
     { path: join(out, 'zip') },
   );
-  t.truthy(readFileSync(join(out, 'zip', 'bundle.js.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(getZipPath({ outputPath: out, path: join(out, 'zip') })),
+    '.zip exists',
+  );
 });
 
 test('naming - both specified, relative, no webpack filename', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out }, { path: 'zip', filename: 'archive' });
-  t.truthy(readFileSync(join(out, 'zip', 'archive.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(
+      getZipPath({ outputPath: out, path: 'zip', filename: 'archive' }),
+    ),
+    '.zip exists',
+  );
 });
 
 test('naming - both specified, absolute, no webpack filename', async (t) => {
@@ -420,7 +495,16 @@ test('naming - both specified, absolute, no webpack filename', async (t) => {
     { path: out },
     { path: join(out, 'zip'), filename: 'archive' },
   );
-  t.truthy(readFileSync(join(out, 'zip', 'archive.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(
+      getZipPath({
+        outputPath: out,
+        path: join(out, 'zip'),
+        filename: 'archive',
+      }),
+    ),
+    '.zip exists',
+  );
 });
 
 test('naming - both specified, relative, with webpack filename', async (t) => {
@@ -429,7 +513,12 @@ test('naming - both specified, relative, with webpack filename', async (t) => {
     { path: out, filename: 'bundle.js' },
     { path: 'zip', filename: 'archive' },
   );
-  t.truthy(readFileSync(join(out, 'zip', 'archive.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(
+      getZipPath({ outputPath: out, path: 'zip', filename: 'archive' }),
+    ),
+    '.zip exists',
+  );
 });
 
 test('naming - both specified, absolute, with webpack filename', async (t) => {
@@ -438,7 +527,16 @@ test('naming - both specified, absolute, with webpack filename', async (t) => {
     { path: out, filename: 'bundle.js' },
     { path: join(out, 'zip'), filename: 'archive' },
   );
-  t.truthy(readFileSync(join(out, 'zip', 'archive.zip')), '.zip exists');
+  t.truthy(
+    readFileSync(
+      getZipPath({
+        outputPath: out,
+        path: join(out, 'zip'),
+        filename: 'archive',
+      }),
+    ),
+    '.zip exists',
+  );
 });
 
 test.after(() => {

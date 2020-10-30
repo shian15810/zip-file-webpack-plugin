@@ -70,11 +70,8 @@ ZipFilePlugin.prototype.apply = function (compiler) {
     zipFile.outputStream.on('end', function () {
       // default to webpack's root output path if no path provided
       var outputPath = options.path || compilation.options.output.path;
-      // default to webpack root filename if no filename provided, else the basename of the output path
-      var outputFilename =
-        options.filename ||
-        compilation.options.output.filename ||
-        path.basename(outputPath);
+      // default to the basename of the output path if no filename provided
+      var outputFilename = options.filename || path.basename(outputPath);
 
       var extension = '.' + (options.extension || 'zip');
 

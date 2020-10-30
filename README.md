@@ -17,7 +17,6 @@ module.exports = {
   // ...
   output: {
     path: path.join(__dirname, 'dist'),
-    filename: 'bundle.js',
   },
   // ...
   plugins: [
@@ -26,8 +25,7 @@ module.exports = {
       // can be relative (to Webpack output path) or absolute
       path: 'zip',
 
-      // OPTIONAL: defaults to the Webpack output filename (above) or,
-      // if not present, the basename of the path
+      // OPTIONAL: defaults to the basename of `path` option
       filename: 'my_app.zip',
 
       // OPTIONAL: defaults to 'zip'
