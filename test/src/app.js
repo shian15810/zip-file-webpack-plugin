@@ -1,4 +1,4 @@
-import 'file-loader?name=subdir/bye.jpg!./hi.jpg';
-import 'spawn-loader?name=[name].js!./spawned.js';
+import 'entry-chunk-loader?name=[name].js!./chunk.js';
+import 'file-loader?name=subdir/bye.jpeg!./hi.jpeg';
 
 export const abc = 'xyz';

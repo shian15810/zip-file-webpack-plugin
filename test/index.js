@@ -6,16 +6,16 @@ import mkdirp from 'mkdirp';
 import rimraf from 'rimraf';
 import webpack from 'webpack';
 import yauzl from 'yauzl';
-import ZipFilePlugin from '../index.js';
+import ZipFilePlugin from 'zip-file-webpack-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-function randomPath() {
+const randomPath = () => {
   return join(__dirname, 'dist', String(Math.random()).slice(2));
-}
+};
 
-function runWithOptions({ path, filename }, options) {
+const runWithOptions = ({ path, filename }, options) => {
   return new Promise((resolve, reject) => {
     webpack(
       {
@@ -34,7 +34,7 @@ function runWithOptions({ path, filename }, options) {
       },
     );
   });
-}
+};
 
 const getZipPath = ({ outputPath, path, filename, extension }) =>
   resolve(
@@ -49,33 +49,33 @@ test('default', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out });
 
-  const byeJpg = readFileSync(join(out, 'subdir', 'bye.jpg'));
+  const byeJpeg = readFileSync(join(out, 'subdir', 'bye.jpeg'));
+  const chunkJs = readFileSync(join(out, 'chunk.js'), 'utf8');
   const mainJs = readFileSync(join(out, 'main.js'), 'utf8');
-  const spawnedJs = readFileSync(join(out, 'spawned.js'), 'utf8');
-  const bundleJsZip = readFileSync(getZipPath({ outputPath: out }));
+  const outZip = readFileSync(getZipPath({ outputPath: out }));
 
-  t.truthy(byeJpg);
+  t.truthy(byeJpeg);
   t.regex(mainJs, /const abc = 'xyz';/);
-  t.regex(spawnedJs, /const foo = 'bar';/);
-  t.truthy(bundleJsZip);
+  t.regex(chunkJs, /const foo = 'bar';/);
+  t.truthy(outZip);
 });
 
 test('basic', async (t) => {
   const out = randomPath();
   await runWithOptions({ path: out, filename: 'bundle.js' });
 
-  const byeJpg = readFileSync(join(out, 'subdir', 'bye.jpg'));
+  const byeJpeg = readFileSync(join(out, 'subdir', 'bye.jpeg'));
   const bundleJs = readFileSync(join(out, 'bundle.js'), 'utf8');
-  const spawnedJs = readFileSync(join(out, 'spawned.js'), 'utf8');
-  const bundleJsZip = readFileSync(getZipPath({ outputPath: out }));
+  const chunkJs = readFileSync(join(out, 'chunk.js'), 'utf8');
+  const outZip = readFileSync(getZipPath({ outputPath: out }));
 
-  t.truthy(byeJpg);
+  t.truthy(byeJpeg);
   t.regex(bundleJs, /const abc = 'xyz';/);
-  t.regex(spawnedJs, /const foo = 'bar';/);
-  t.truthy(bundleJsZip);
+  t.regex(chunkJs, /const foo = 'bar';/);
+  t.truthy(outZip);
 });
 
-async function unzip(zipFilePath, outDirPath) {
+const unzip = async (zipFilePath, outDirPath) => {
   const zipFile = await new Promise((resolve, reject) => {
     yauzl.open(zipFilePath, { lazyEntries: true }, (err, zipFile) => {
       err ? reject(err) : resolve(zipFile);
@@ -98,7 +98,7 @@ async function unzip(zipFilePath, outDirPath) {
     zipFile.on('close', resolve);
     zipFile.on('error', reject);
   });
-}
+};
 
 test('roundtrip', async (t) => {
   const out = randomPath();
@@ -111,8 +111,8 @@ test('roundtrip', async (t) => {
 
   t.is(
     Buffer.compare(
-      readFileSync(join(outSrc, 'subdir', 'bye.jpg')),
-      readFileSync(join(outDst, 'subdir', 'bye.jpg')),
+      readFileSync(join(outSrc, 'subdir', 'bye.jpeg')),
+      readFileSync(join(outDst, 'subdir', 'bye.jpeg')),
     ),
     0,
   );
@@ -125,14 +125,14 @@ test('roundtrip', async (t) => {
   );
   t.is(
     Buffer.compare(
-      readFileSync(join(outSrc, 'spawned.js')),
-      readFileSync(join(outDst, 'spawned.js')),
+      readFileSync(join(outSrc, 'chunk.js')),
+      readFileSync(join(outDst, 'chunk.js')),
     ),
     0,
   );
 });
 
-async function roundtrip(options) {
+const roundtrip = async (options) => {
   const out = randomPath();
   const outSrc = join(out, 'src');
   const outDst = join(out, 'dst');
@@ -142,89 +142,89 @@ async function roundtrip(options) {
   await unzip(getZipPath({ outputPath: outSrc }), outDst);
 
   return outDst;
-}
+};
 
 test('exclude string', async (t) => {
-  const out = await roundtrip({ exclude: 'spawned.js' });
+  const out = await roundtrip({ exclude: 'chunk.js' });
 
-  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'bundle.js')));
-  t.throws(() => readFileSync(join(out, 'spawned.js')));
+  t.throws(() => readFileSync(join(out, 'chunk.js')));
 });
 
 test('include string', async (t) => {
-  const out = await roundtrip({ include: 'spawned.js' });
+  const out = await roundtrip({ include: 'chunk.js' });
 
-  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.throws(() => readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('exclude regex', async (t) => {
-  const out = await roundtrip({ exclude: /\.jpg$/ });
+  const out = await roundtrip({ exclude: /\.jpeg$/ });
 
-  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('include regex', async (t) => {
   const out = await roundtrip({ include: /\.js$/ });
 
-  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('multiple excludes', async (t) => {
-  const out = await roundtrip({ exclude: [/\.jpg$/, 'bundle.js'] });
+  const out = await roundtrip({ exclude: [/\.jpeg$/, 'bundle.js'] });
 
-  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.throws(() => readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('multiple includes', async (t) => {
-  const out = await roundtrip({ include: [/\.jpg$/, 'bundle.js'] });
+  const out = await roundtrip({ include: [/\.jpeg$/, 'bundle.js'] });
 
-  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'bundle.js')));
-  t.throws(() => readFileSync(join(out, 'spawned.js')));
+  t.throws(() => readFileSync(join(out, 'chunk.js')));
 });
 
 test('exclude overrides include', async (t) => {
   const out = await roundtrip({
-    include: [/\.jpg$/, /\.js$/],
+    include: [/\.jpeg$/, /\.js$/],
     exclude: ['bundle.js'],
   });
 
-  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.throws(() => readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('exclude dir', async (t) => {
   const out = await roundtrip({ exclude: 'subdir/' });
 
-  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('loaders not tested for include', async (t) => {
   const out = await roundtrip({ include: /file/i });
 
-  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.throws(() => readFileSync(join(out, 'bundle.js')));
-  t.throws(() => readFileSync(join(out, 'spawned.js')));
+  t.throws(() => readFileSync(join(out, 'chunk.js')));
 });
 
 test('loaders not tested for exclude', async (t) => {
   const out = await roundtrip({ exclude: /file/i });
 
-  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('fileOptions', async (t) => {
@@ -241,7 +241,7 @@ test('fileOptions', async (t) => {
     },
   );
 
-  t.is(readFileSync(getZipPath({ outputPath: out })).length, 128965);
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 129410);
 });
 
 test('zipOptions', async (t) => {
@@ -255,7 +255,7 @@ test('zipOptions', async (t) => {
     },
   );
 
-  t.is(readFileSync(getZipPath({ outputPath: out })).length, 106178);
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 106211);
 });
 
 test('fileOptions and zipOptions', async (t) => {
@@ -274,13 +274,13 @@ test('fileOptions and zipOptions', async (t) => {
     },
   );
 
-  t.is(readFileSync(getZipPath({ outputPath: out })).length, 106262);
+  t.is(readFileSync(getZipPath({ outputPath: out })).length, 106295);
 });
 
 test('pathPrefix', async (t) => {
   const out = await roundtrip({ pathPrefix: 'prefix' });
 
-  t.truthy(readFileSync(join(out, 'prefix', 'subdir', 'bye.jpg')));
+  t.truthy(readFileSync(join(out, 'prefix', 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'prefix', 'bundle.js')));
 });
 
@@ -291,18 +291,18 @@ test('pathPrefix - throws on absolute path', async (t) => {
   });
 });
 
-test('pathMapper - jpg', async (t) => {
+test('pathMapper - jpeg', async (t) => {
   const out = await roundtrip({
     pathMapper: (p) => {
-      if (p.endsWith('.jpg')) return join(dirname(p), 'images', basename(p));
+      if (p.endsWith('.jpeg')) return join(dirname(p), 'images', basename(p));
       return p;
     },
   });
 
-  t.truthy(readFileSync(join(out, 'subdir', 'images', 'bye.jpg')));
-  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.truthy(readFileSync(join(out, 'subdir', 'images', 'bye.jpeg')));
+  t.throws(() => readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'chunk.js')));
 });
 
 test('pathMapper - js', async (t) => {
@@ -313,11 +313,11 @@ test('pathMapper - js', async (t) => {
     },
   });
 
-  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpg')));
+  t.truthy(readFileSync(join(out, 'subdir', 'bye.jpeg')));
   t.truthy(readFileSync(join(out, 'js', 'bundle.js')));
   t.throws(() => readFileSync(join(out, 'bundle.js')));
-  t.truthy(readFileSync(join(out, 'js', 'spawned.js')));
-  t.throws(() => readFileSync(join(out, 'spawned.js')));
+  t.truthy(readFileSync(join(out, 'js', 'chunk.js')));
+  t.throws(() => readFileSync(join(out, 'chunk.js')));
 });
 
 test('naming - default options, no webpack filename', async (t) => {

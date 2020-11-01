@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+  release:
+    types:
+      - released
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.3
+      - uses: actions/setup-node@v2.1.2
+        with:
+          node-version: '15'
+          check-latest: true
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run test
+      - run: npm publish
+        if: ${{ github.event_name == 'release' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

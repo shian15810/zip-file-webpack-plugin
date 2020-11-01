@@ -2,6 +2,11 @@
 
 Webpack plugin to zip emitted files. Compresses all assets into a zip file.
 
+A fork of [`zip-webpack-plugin`](https://github.com/erikdesjardins/zip-webpack-plugin), with a few notable changes:
+
+- Supports [Webpack 5](https://webpack.js.org/blog/2020-10-10-webpack-5-release/).
+- Provides built-in [TypeScript declarations](https://www.typescriptlang.org/docs/handbook/declaration-files/publishing.html).
+
 ## Installation
 
 `npm install --save-dev zip-file-webpack-plugin`
@@ -83,12 +88,3 @@ const config = {
 
 export default config;
 ```
-
-## Notes
-
-This repository is an independent fork of [erikdesjardins/zip-webpack-plugin](https://github.com/erikdesjardins/zip-webpack-plugin).
-
-In addition to what [zip-webpack-plugin](https://www.npmjs.com/package/zip-webpack-plugin) provides, this package also:
-
-- ships along TypeScript declarations. (No more `npm install --save-dev @types/zip-webpack-plugin`.)
-- supports Webpack 5.

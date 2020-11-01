@@ -3,9 +3,14 @@
   "name": "zip-file-webpack-plugin",
   "version": "1.0.0",
   "description": "Webpack plugin to zip emitted files. Compresses all assets into a zip file.",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "exports": {
+    "import": "./index.js",
+    "require": "./index.cjs"
+  },
+  "main": "./index.cjs",
+  "types": "./index.d.ts",
   "scripts": {
+    "format": "prettier --write .",
     "test": "ava test/index.js"
   },
   "repository": {
@@ -17,8 +22,8 @@
     "file",
     "webpack",
     "plugin",
-    "compress",
-    "asset"
+    "archive",
+    "compress"
   ],
   "author": "Chuah Chee Shian <shian15810@gmail.com> (https://github.com/shian15810)",
   "license": "MIT",
@@ -27,24 +32,21 @@
   },
   "homepage": "https://github.com/shian15810/zip-file-webpack-plugin#readme",
   "dependencies": {
+    "@types/yazl": "^2.4.2",
     "webpack-sources": "^2.2.0",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
     "ava": "^3.13.0",
+    "entry-chunk-loader": "^0.3.2",
     "file-loader": "^6.2.0",
     "mkdirp": "^1.0.4",
+    "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
-    "spawn-loader": "^7.0.0",
-    "webpack": "^4.44.2",
+    "webpack": "^5.3.2",
     "yauzl": "^2.10.0"
   },
   "peerDependencies": {
     "webpack": "*"
-  },
-  "peerDependenciesMeta": {
-    "webpack": {
-      "optional": true
-    }
   }
 }
