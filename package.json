@@ -33,7 +33,6 @@
   "homepage": "https://github.com/shian15810/zip-file-webpack-plugin#readme",
   "dependencies": {
     "@types/yazl": "^2.4.2",
-    "webpack-sources": "^2.2.0",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
